@@ -11,3 +11,114 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Modal overlay and custom modal */
+.overlay {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-custom {
+  background: #fff;
+  border-radius: 6px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  padding: 16px;
+}
+
+.modal-header-custom h5 {
+  margin: 0;
+}
+
+.modal-body-custom {
+  padding: 12px 0;
+}
+
+.modal-footer-footer {
+  padding-top: 8px;
+}
+
+/* Wrapper for the whole app — layered gradients with blend modes */
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  /* Requested layered backgrounds */
+  background: radial-gradient(50% 123.47% at 50% 50%, #00ff94 0%, #720059 100%),
+    linear-gradient(121.28deg, #669600 0%, #ff0000 100%),
+    linear-gradient(360deg, #0029ff 0%, #8fff00 100%),
+    radial-gradient(100% 164.72% at 100% 100%, #6100ff 0%, #00ff57 100%),
+    radial-gradient(100% 148.07% at 0% 0%, #fff500 0%, #51d500 100%);
+  background-blend-mode: screen, color-dodge, overlay, difference, normal;
+}
+
+/* Make the inner container stand out with a white background */
+.container {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  padding: 28px;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Make text inputs borderless inside the app */
+.app-wrapper .container input.form-control,
+.app-wrapper .list-group-item input[type="text"] {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent;
+}
+
+/* Keep focus clear (no default outline) but allow custom focus if needed */
+.app-wrapper .container input.form-control:focus,
+.app-wrapper .list-group-item input[type="text"]:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Active filter tab: underline in green-blue */
+.nav-tabs .nav-link.active {
+  background: transparent !important; /* keep container bg */
+  color: #007bff !important; /* bootstrap primary */
+  border: none !important;
+  position: relative;
+}
+.nav-tabs .nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00b894, #007bff);
+  border-radius: 3px;
+}
+
+/* Non-active tab text should be black */
+.nav-tabs .nav-link:not(.active) {
+  color: #000 !important;
+}
+
+/* List items background — subtle gray to separate items from white container */
+.app-wrapper .list-group-item {
+  background: #f5f5f5;
+  border: none;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+/* Khi input được focus, label nổi lên và thành màu xanh */
+.form-floating > .form-control:focus ~ label {
+  color: #0d6efd; /* màu xanh Bootstrap primary */
+  font-weight: 500; /* tuỳ chọn: làm chữ đậm hơn */
+}
