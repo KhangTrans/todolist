@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import TodoForm from "./TodoForm";
-import FilterTabs from "./FilterTabs";
-import TodoList from "./TodoList";
+import TodoForm from "./components/TodoForm";
+import FilterTabs from "./components/FilterTabs";
+import TodoList from "./components/TodoList";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./App.css";
 
@@ -34,9 +34,14 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
+  // Editing flow: when user requests edit from a TodoItem, we store the
+  // todo object in `editingTodo` and populate the top form for editing.
+  const [editingTodo, setEditingTodo] = useState(null);
+
   // `warningOpen` là modal riêng để hiển thị cảnh báo khi người dùng
   // cố gắng thêm todo rỗng. Điều này tách UI cảnh báo khỏi modal xác nhận xóa.
   const [warningOpen, setWarningOpen] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
 
   // Đọc todos từ localStorage khi app mount
   useEffect(() => {
@@ -67,11 +72,11 @@ function App() {
 
   // Thêm một todo mới vào danh sách. Sử dụng Date.now() làm id đơn giản
   // và todo mới mặc định chưa hoàn thành.
-  
+
   const addTodo = (text) => {
     const trimmed = text.trim();
     if (!trimmed) {
-      setWarningOpen(true);
+      showWarning("Tên công việc không được phép để trống.");
       return;
     }
     // kiểm tra trùng tên (không phân biệt hoa thường)
@@ -79,7 +84,7 @@ function App() {
       (t) => t.text.toLowerCase() === trimmed.toLowerCase()
     );
     if (exists) {
-      setWarningOpen(true); // có thể dùng modal cảnh báo chung
+      showWarning("Công việc bị trùng.");
       return;
     }
 
@@ -128,13 +133,36 @@ function App() {
   const editTodo = (id, newText) => {
     const trimmed = newText.trim();
     if (!trimmed) {
-      setWarningOpen(true);
+      showWarning("Tên công việc không được phép để trống.");
+      return;
+    }
+    // kiểm tra trùng tên cho edit: cho phép giữ nguyên nếu chỉ sửa bản thân
+    const exists = todos.some(
+      (t) => t.id !== id && t.text.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (exists) {
+      showWarning("Công việc bị trùng.");
       return;
     }
     setTodos((prev) =>
       prev.map((t) => (t.id === id ? { ...t, text: trimmed } : t))
     );
   };
+
+  // Start edit: populate form with selected todo
+  const startEdit = (todo) => {
+    setEditingTodo(todo);
+    // optionally focus input — handled by TodoForm via effect
+  };
+
+  // Called by TodoForm when updating an existing todo
+  const updateTodo = (id, newText) => {
+    editTodo(id, newText);
+    // Clear editing state after update
+    setEditingTodo(null);
+  };
+
+  const cancelEdit = () => setEditingTodo(null);
 
   // Lọc danh sách todo hiển thị dựa trên `filter` hiện tại.
   const filteredTodos = todos.filter((t) => {
@@ -144,13 +172,22 @@ function App() {
   });
 
   // Các hàm helper để mở/đóng modal cảnh báo khi input trống.
-  const showWarning = () => setWarningOpen(true);
+  const showWarning = (message = "Có lỗi xảy ra.") => {
+    setWarningMessage(message);
+    setWarningOpen(true);
+  };
   const closeWarning = () => setWarningOpen(false);
 
   return (
     <div className="app-wrapper">
       <div className="container p-4">
-        <TodoForm addTodo={addTodo} onEmptySubmit={showWarning} />
+        <TodoForm
+          addTodo={addTodo}
+          onEmptySubmit={showWarning}
+          editingTodo={editingTodo}
+          updateTodo={updateTodo}
+          cancelEdit={cancelEdit}
+        />
         <FilterTabs filter={filter} setFilter={setFilter} />
         <TodoList
           todos={filteredTodos}
@@ -159,6 +196,7 @@ function App() {
           editTodo={editTodo}
           requestDelete={requestDelete}
           onEmptyEdit={showWarning}
+          startEdit={startEdit}
         />
 
         {/* Confirmation modal overlay */}
@@ -166,11 +204,11 @@ function App() {
           <div className="modal-custom">
             <div className="modal-header-custom d-flex justify-content-between align-items-center">
               <h5>Xác nhận</h5>
-              <i
-                className="fas fa-xmark"
-                style={{ cursor: "pointer" }}
+              <button
+                className="btn-close"
+                aria-label="Close"
                 onClick={cancelDelete}
-              ></i>
+              ></button>
             </div>
             <div className="modal-body-custom">
               <p>Bạn chắc chắn muốn xóa công việc này?</p>
@@ -191,14 +229,14 @@ function App() {
           <div className="modal-custom">
             <div className="modal-header-custom d-flex justify-content-between align-items-center">
               <h5>Cảnh Báo</h5>
-              <i
-                className="fas fa-xmark"
-                style={{ cursor: "pointer" }}
+              <button
+                className="btn-close"
+                aria-label="Close"
                 onClick={closeWarning}
-              ></i>
+              ></button>
             </div>
             <div className="modal-body-custom">
-              <p>Tên công việc không được phép để trống.</p>
+              <p>{warningMessage || "Có lỗi xảy ra."}</p>
             </div>
             <div className="modal-footer-footer d-flex justify-content-end">
               <button className="btn btn-light" onClick={closeWarning}>

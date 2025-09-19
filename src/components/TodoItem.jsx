@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 /*
   TodoItem
@@ -29,27 +29,10 @@ import React, { useState } from "react";
     - Render checkbox, text của todo (hoặc input khi chỉnh sửa), và
       các icon cho sửa/xóa. Việc lưu xảy ra khi input blur (mất focus).
 */
-function TodoItem({ todo, toggleTodo, deleteTodo, editTodo, requestDelete, onEmptyEdit }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [newText, setNewText] = useState(todo.text);
 
-  // Save handler called when editing finishes (on blur).
-  // If the new text is empty (or whitespace-only), call the parent
-  // `onEmptyEdit` callback to show a validation warning and do NOT save.
-  // Otherwise persist the change via editTodo.
-  const handleSave = () => {
-    if (!newText.trim()) {
-      // Nếu rỗng: thông báo lỗi, phục hồi giá trị cũ và thoát chế độ chỉnh sửa
-      if (typeof onEmptyEdit === "function") onEmptyEdit();
-      setNewText(todo.text);
-      setIsEditing(false);
-      return;
-    }
-    // Nếu hợp lệ, lưu thay đổi và đóng chế độ chỉnh sửa
-    editTodo(todo.id, newText);
-    setIsEditing(false);
-  };
-
+function TodoItem({ todo, toggleTodo, deleteTodo, editTodo, requestDelete, onEmptyEdit, startEdit }) {
+  // This component is presentational. When user clicks edit we call
+  // `startEdit(todo)` so the parent (App) can populate the form for editing.
   return (
     <li className="list-group-item d-flex justify-content-between align-items-center">
       <div className="d-flex align-items-center">
@@ -61,33 +44,20 @@ function TodoItem({ todo, toggleTodo, deleteTodo, editTodo, requestDelete, onEmp
           onChange={() => toggleTodo(todo.id)}
         />
 
-        {/* When editing, show a text input bound to newText. Otherwise
-            show the todo text; completed items get a strikethrough. */}
-        {isEditing ? (
-          <input
-            type="text"
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            onBlur={handleSave}
-            autoFocus
-          />
-        ) : (
-          <span
-            className={todo.completed ? "text-decoration-line-through" : ""}
-            style={{ cursor: "pointer" }}
-          >
-            {todo.text}
-          </span>
-        )}
+        <span
+          className={todo.completed ? "text-decoration-line-through" : ""}
+          style={{ cursor: "pointer" }}
+        >
+          {todo.text}
+        </span>
       </div>
 
       <div>
-        {/* Edit icon — enters inline edit mode. We use bootstrap-icons
-            for visual consistency. */}
+        {/* Edit icon — trigger parent to open the form in edit mode */}
         <i
           className="bi bi-pencil-square text-warning me-3"
           style={{ cursor: "pointer", fontSize: "1.2rem" }}
-          onClick={() => setIsEditing(true)}
+          onClick={() => typeof startEdit === "function" ? startEdit(todo) : null}
         ></i>
 
         {/* Delete icon — calls requestDelete so the parent can confirm

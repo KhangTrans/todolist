@@ -1,5 +1,5 @@
 import React from "react";
-import TodoItem from "./TodoItem";
+import TodoItem from "./TodoItem.jsx";
 
 /*
   TodoList
@@ -28,7 +28,14 @@ import TodoItem from "./TodoItem";
       `TodoItem` cho mỗi todo. Các handler sự kiện được chuyển tiếp cho
       component con để component con giữ vai trò trình bày.
 */
-function TodoList({ todos, toggleTodo, deleteTodo, editTodo, requestDelete, onEmptyEdit }) {
+function TodoList({ todos, toggleTodo, deleteTodo, editTodo, requestDelete, onEmptyEdit, startEdit }) {
+    if (!todos || todos.length === 0) {
+    return (
+      <p className="text-center text-muted mt-3">
+        Không có công việc
+      </p>
+    );
+  }
   return (
     <ul className="list-group">
       {todos.map((t) => (
@@ -40,6 +47,7 @@ function TodoList({ todos, toggleTodo, deleteTodo, editTodo, requestDelete, onEm
           editTodo={editTodo}
           requestDelete={requestDelete}
           onEmptyEdit={onEmptyEdit}
+          startEdit={startEdit}
         />
       ))}
     </ul>

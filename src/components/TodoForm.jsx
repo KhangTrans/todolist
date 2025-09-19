@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 /*
   TodoForm
@@ -21,20 +21,32 @@ import React, { useState } from "react";
     - Nếu value trim là rỗng thì gọi `onEmptySubmit` (nếu có) và không gọi `addTodo`
     - Ngược lại, gọi `addTodo` và xoá input
 */
-function TodoForm({ addTodo, onEmptySubmit }) {
+function TodoForm({ addTodo, onEmptySubmit, editingTodo, updateTodo, cancelEdit }) {
   const [value, setValue] = useState("");
+
+  // When `editingTodo` changes, populate the input with its text.
+  useEffect(() => {
+    if (editingTodo && editingTodo.text) {
+      setValue(editingTodo.text);
+    } else {
+      setValue("");
+    }
+  }, [editingTodo]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Trim whitespace — we don't allow empty or whitespace-only tasks.
     if (!value.trim()) {
-      // Let the parent handle the validation UI (modal, toast, etc.).
-      if (typeof onEmptySubmit === "function") onEmptySubmit();
+      if (typeof onEmptySubmit === "function") onEmptySubmit("Tên công việc không được phép để trống.");
       return;
     }
-    // Add and reset input
-    addTodo(value);
-    setValue("");
+    if (editingTodo && typeof updateTodo === "function") {
+      updateTodo(editingTodo.id, value);
+    } else {
+      addTodo(value);
+    }
+    // Reset local input only if not editing (parent will clear editingTodo)
+    if (!editingTodo) setValue("");
   };
 
   return (
@@ -50,7 +62,16 @@ function TodoForm({ addTodo, onEmptySubmit }) {
         />
         <label htmlFor="todo-input">Nhập tên công việc</label>
       </div>
-      <button className="btn btn-info ms-2">THÊM</button>
+      <div className="d-flex align-items-center">
+        <button className="btn btn-info ms-2" type="submit">
+          {editingTodo ? "CẬP NHẬT" : "THÊM"}
+        </button>
+        {editingTodo ? (
+          <button type="button" className="btn btn-secondary ms-2" onClick={() => typeof cancelEdit === "function" ? cancelEdit() : null}>
+            HỦY
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }
